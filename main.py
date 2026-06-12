@@ -1,20 +1,58 @@
-
-import sys
+import tkinter as tk
 from grovers_password_cracker import GroverPasswordCracker
-from visualization import plot_histogram
-from comparison import compare_classical_vs_quantum
+import matplotlib.pyplot as plt
 
-print(chr(10) + '='*70)
-print('🔐 QUANTUM PASSWORD CRACKING')
-print('='*70)
 
-target = '1010'
-cracker = GroverPasswordCracker(target, 4)
-circuit, counts = cracker.run(shots=1000)
-cracker.print_results(counts)
+# =========================
+# تشغيل المحاكاة
+# =========================
+def run_simulation():
+    password = entry.get()
 
-fig = plot_histogram(counts, target)
-fig.savefig('histogram.png')
-print('✅ Histogram saved!')
+    cracker = GroverPasswordCracker()
+    best, success, prob = cracker.run(password)
 
-compare_classical_vs_quantum(target, 4, 1000)
+    # عرض النتيجة داخل الواجهة
+    text = f"""
+Target: {password}
+Success Rate: {prob:.2f}%
+Hits: {success}/1000
+
+Top Results:
+"""
+
+    for b in best:
+        text += f"{b[0]} -> {b[1]}\n"
+
+    output.config(text=text)
+
+    # رسم histogram
+    labels = [b[0] for b in best]
+    values = [b[1] for b in best]
+
+    plt.bar(labels, values)
+    plt.title("Quantum Results Histogram")
+    plt.xlabel("States")
+    plt.ylabel("Frequency")
+    plt.show()
+
+
+# =========================
+# GUI
+# =========================
+window = tk.Tk()
+window.title("Quantum Password Cracking")
+window.geometry("550x400")
+
+tk.Label(window, text="🔐 Enter Binary Password").pack(pady=10)
+
+entry = tk.Entry(window, font=("Arial", 12))
+entry.pack(pady=5)
+
+tk.Button(window, text="Run Quantum Simulation", command=run_simulation,
+          bg="green", fg="white").pack(pady=10)
+
+output = tk.Label(window, text="", justify="left")
+output.pack(pady=20)
+
+window.mainloop()
