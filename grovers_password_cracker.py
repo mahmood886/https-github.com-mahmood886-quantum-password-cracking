@@ -10,16 +10,16 @@ class GroverPasswordCracker:
         self.simulator = AerSimulator()
         self.circuit = None
 
-    # ======= التعديل الأول: الـ Oracle الصحيح =======
     def create_oracle(self, qc, target):
-        target_bits = [int(bit) for bit in target]
+        # تم تعديل هذا السطر [::-1] ليعكس القراءة وتظهر النتيجة صحيحة في الواجهة
+        target_bits = [int(bit) for bit in target[::-1]]
 
         # 1. تطبيق بوابات X على الكيوبتات التي قيمتها '0'
         for i, bit in enumerate(target_bits):
             if bit == 0:
                 qc.x(i)
 
-        # 2. تطبيق بوابة Multi-Controlled Z (قلب الإشارة للحالة المستهدفة)
+        # 2. تطبيق بوابة Multi-Controlled Z لقلب الإشارة
         qc.mcp(np.pi, list(range(self.n_qubits - 1)), self.n_qubits - 1)
 
         # 3. إعادة الكيوبتات لحالتها الأصلية (Uncomputation)
@@ -27,7 +27,6 @@ class GroverPasswordCracker:
             if bit == 0:
                 qc.x(i)
 
-    # ======= التعديل الثاني: الـ Diffusion Operator الصحيح =======
     def create_diffusion(self, qc):
         # 1. تطبيق بوابات H و X على جميع الكيوبتات
         qc.h(range(self.n_qubits))
@@ -36,7 +35,7 @@ class GroverPasswordCracker:
         # 2. تطبيق بوابة Multi-Controlled Z لقلب إشارة الحالة |0000>
         qc.mcp(np.pi, list(range(self.n_qubits - 1)), self.n_qubits - 1)
 
-        # 3. إعادة الكيوبتات لحالتها
+        # 3. إعادة الكيوبتات لحالتها الأصلية
         qc.x(range(self.n_qubits))
         qc.h(range(self.n_qubits))
 
